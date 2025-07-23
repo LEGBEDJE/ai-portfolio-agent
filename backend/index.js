@@ -9,6 +9,7 @@ const { Calculator } = require('@langchain/community/tools/calculator');
 const { createOpenAIFunctionsAgent, AgentExecutor } = require('langchain/agents');
 const { pull } = require('langchain/hub');
 const { AIMessage, HumanMessage } = require('@langchain/core/messages');
+const { ConversationBufferMemory } = require('langchain/memory');
 
 const app = express();
 const port = 5000;
@@ -37,18 +38,23 @@ const agentExecutor = new AgentExecutor({
   tools,
 });
 
-const chatHistory = [];
+const memory = new ConversationBufferMemory({ returnMessages: true, memoryKey: "chat_history", inputKey: "input" });
 
 app.post('/chat', async (req, res) => {
   try {
     const { message } = req.body;
+
+    const currentMemory = await memory.loadMemoryVariables({});
+
     const result = await agentExecutor.invoke({
       input: message,
-      chat_history: chatHistory,
+      chat_history: currentMemory.chat_history,
     });
 
-    chatHistory.push(new HumanMessage(message));
-    chatHistory.push(new AIMessage(result.output));
+    await memory.saveContext(
+      { input: message },
+      { output: result.output }
+    );
 
     res.json({ reply: result.output, intermediateSteps: result.intermediateSteps });
   } catch (error) {
