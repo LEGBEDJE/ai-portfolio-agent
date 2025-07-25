@@ -43,7 +43,7 @@ ai-portfolio-agent/
 ### 1. Clone the Repository (if applicable)
 
 ```bash
-git clone <your-repository-url>
+git clone git@github.com:LEGBEDJE/ai-portfolio-agent.git
 cd ai-portfolio-agent
 ```
 
